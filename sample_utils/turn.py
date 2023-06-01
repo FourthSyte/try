@@ -1,5 +1,4 @@
 import logging
-
 import streamlit as st
 from twilio.rest import Client
 
@@ -28,4 +27,7 @@ def get_ice_servers():
 
     token = client.tokens.create()
 
-    return token.ice_servers
+    # Convert ice servers to list of dictionaries
+    ice_servers = [dict(server) for server in token.ice_servers]
+
+    return ice_servers
