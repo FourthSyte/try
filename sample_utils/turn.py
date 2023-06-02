@@ -1,32 +1,26 @@
-import logging
-import streamlit as st
 from twilio.rest import Client
-
-logger = logging.getLogger(__name__)
-
-def get_token(account_sid, auth_token):
-    client = Client(account_sid, auth_token)
-    token = client.tokens.create()
-    return token.ice_servers
+import streamlit as st
 
 @st.cache(allow_output_mutation=True)
-def get_ice_servers():
-    """Use Twilio's TURN server because Streamlit Community Cloud has changed
-    its infrastructure and WebRTC connection cannot be established without TURN server now.  # noqa: E501
-    We considered Open Relay Project (https://www.metered.ca/tools/openrelay/) too,
-    but it is not stable and hardly works as some people reported like https://github.com/aiortc/aiortc/issues/832#issuecomment-1482420656  # noqa: E501
-    See https://github.com/whitphx/streamlit-webrtc/issues/1213
-    """
-
-    # Ref: https://www.twilio.com/docs/stun-turn/api
+def get_ice_servers(username: str, password: str):
+    from twilio.base.exceptions import TwilioRestException
     try:
-        account_sid = st.secrets["TWILIO_ACCOUNT_SID"]
-        auth_token = st.secrets["TWILIO_AUTH_TOKEN"]
-        ice_servers = get_token(account_sid, auth_token)
-    except KeyError:
-        logger.warning(
-            "Twilio credentials are not set. Fallback to a free STUN server from Google."  # noqa: E501
-        )
-        return [{"urls": ["stun:stun.l.google.com:19302"]}]
-    
-    return ice_servers
+        client = Client(username, password)
+        token = client.tokens.create()
+        ice_servers = token.ice_servers
+        return ice_servers
+    except TwilioRestException as e:
+        st.error(f"Twilio API call failed with error: {e}")
+        return []
+
+def get_twilio_client():
+    username = st.secrets["TWILIO"]["TWILIO_ACCOUNT_SID"]
+    password = st.secrets["TWILIO"]["TWILIO_AUTH_TOKEN"]
+    return Client(username, password)
+
+def get_twilio_token():
+    client = get_twilio_client()
+    token = client.tokens.create()
+    return token
+
+rtc_configuration = {"iceServers": get_ice_servers(st.secrets["TWILIO"]["TWILIO_ACCOUNT_SID"], st.secrets["TWILIO"]["TWILIO_AUTH_TOKEN"])}
