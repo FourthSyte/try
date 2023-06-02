@@ -4,6 +4,11 @@ from twilio.rest import Client
 
 logger = logging.getLogger(__name__)
 
+def get_token(account_sid, auth_token):
+    client = Client(account_sid, auth_token)
+    token = client.tokens.create()
+    return token.ice_servers
+
 @st.cache(allow_output_mutation=True)
 def get_ice_servers():
     """Use Twilio's TURN server because Streamlit Community Cloud has changed
@@ -17,17 +22,11 @@ def get_ice_servers():
     try:
         account_sid = st.secrets["TWILIO_ACCOUNT_SID"]
         auth_token = st.secrets["TWILIO_AUTH_TOKEN"]
+        ice_servers = get_token(account_sid, auth_token)
     except KeyError:
         logger.warning(
             "Twilio credentials are not set. Fallback to a free STUN server from Google."  # noqa: E501
         )
         return [{"urls": ["stun:stun.l.google.com:19302"]}]
-
-    client = Client(account_sid, auth_token)
-
-    token = client.tokens.create()
-
-    # Convert ice servers to list of dictionaries
-    ice_servers = [dict(server) for server in token.ice_servers]
-
+    
     return ice_servers
