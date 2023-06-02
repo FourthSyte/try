@@ -1,7 +1,7 @@
 from twilio.rest import Client
 import streamlit as st
 
-@st.cache(allow_output_mutation=True)
+@st.cache_data(allow_output_mutation=True)
 def get_ice_servers(username: str, password: str):
     from twilio.base.exceptions import TwilioRestException
     try:
