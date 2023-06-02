@@ -23,4 +23,7 @@ def get_twilio_token():
     token = client.tokens.create()
     return token
 
-rtc_configuration = {"iceServers": get_ice_servers(st.secrets["TWILIO"]["TWILIO_ACCOUNT_SID"], st.secrets["TWILIO"]["TWILIO_AUTH_TOKEN"])}
+username = st.secrets["TWILIO"]["TWILIO_ACCOUNT_SID"]
+password = st.secrets["TWILIO"]["TWILIO_AUTH_TOKEN"]
+
+rtc_configuration = {"iceServers": get_ice_servers(username, password)}
